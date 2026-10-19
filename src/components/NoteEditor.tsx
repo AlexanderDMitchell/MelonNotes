@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { withObservables } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { deleteNote, saveNote } from "@/actions";
@@ -112,8 +106,9 @@ export const NoteEditor = melon.enhance<Injected, Query, Props>(
 );
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, gap: space.md },
+  wrap: { flex: 1, minHeight: 0, minWidth: 0, gap: space.md },
   title: {
+    flexShrink: 0,
     fontSize: 22,
     fontWeight: "700",
     color: colors.ink,
@@ -123,13 +118,18 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    minHeight: 180,
+    minHeight: 0,
     fontSize: 16,
     lineHeight: 24,
     color: colors.ink,
     padding: space.sm,
   },
-  tagRow: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: space.sm,
+    flexShrink: 0,
+  },
   tagChip: {
     paddingHorizontal: space.md,
     paddingVertical: 6,
@@ -138,7 +138,12 @@ const styles = StyleSheet.create({
   },
   tagChipOn: { backgroundColor: "#D9E8DE" },
   tagText: { fontSize: 13, color: colors.ink },
-  actions: { flexDirection: "row", gap: space.sm },
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: space.sm,
+    flexShrink: 0,
+  },
   primary: {
     backgroundColor: colors.accent,
     paddingHorizontal: space.lg,

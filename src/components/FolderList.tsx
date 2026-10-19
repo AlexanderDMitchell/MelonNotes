@@ -21,7 +21,11 @@ const enhancer = withObservables([], () => ({
     .observe(),
 }));
 
-function FolderListView({ folders, selectedFolderId, onSelect }: Injected & Props) {
+function FolderListView({
+  folders,
+  selectedFolderId,
+  onSelect,
+}: Injected & Props) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>Folders</Text>
@@ -65,9 +69,13 @@ const styles = StyleSheet.create({
     paddingVertical: space.sm,
     paddingHorizontal: space.md,
     borderRadius: 8,
+    alignSelf: "stretch",
+    maxWidth: "100%",
+    minWidth: 0,
+    overflow: "hidden",
   },
   rowSelected: { backgroundColor: colors.chip },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  name: { fontSize: 15, color: colors.ink },
+  name: { fontSize: 15, color: colors.ink, flexShrink: 1 },
   nameSelected: { fontWeight: "600" },
 });

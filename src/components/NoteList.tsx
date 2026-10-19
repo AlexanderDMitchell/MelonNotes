@@ -84,20 +84,32 @@ export const NoteList = melon.enhance<Injected, Query, Props>(
 );
 
 const styles = StyleSheet.create({
-  wrap: { gap: space.sm },
+  wrap: { gap: space.sm, width: "100%" },
   empty: { color: colors.muted, fontSize: 14, lineHeight: 20 },
   row: {
     padding: space.md,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.line,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
     gap: 4,
+    alignSelf: "stretch",
+    maxWidth: "100%",
+    minWidth: 0,
+    overflow: "hidden",
   },
   rowSelected: {
     borderColor: colors.accent,
     backgroundColor: "#F0F7F2",
   },
-  title: { fontSize: 16, fontWeight: "600", color: colors.ink },
-  preview: { fontSize: 13, color: colors.muted, lineHeight: 18 },
+  title: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.ink,
+  },
+  preview: {
+    fontSize: 13,
+    color: colors.muted,
+    lineHeight: 18,
+  },
 });

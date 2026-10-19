@@ -9,12 +9,7 @@ import {
   View,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import {
-  createFolder,
-  createNote,
-  createTag,
-  resetDemo,
-} from "@/actions";
+import { createFolder, createNote, createTag, resetDemo } from "@/actions";
 import { melon } from "@/database";
 import { seedIfEmpty } from "@/database/seed";
 import { FolderList } from "@/components/FolderList";
@@ -25,7 +20,7 @@ import { colors, space } from "@/theme";
 
 export function HomeScreen() {
   const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const wide = width >= 960;
 
   const available = useSyncExternalStore(
     melon.subscribeDatabaseAvailable,
@@ -52,7 +47,6 @@ export function HomeScreen() {
     };
   }, [available]);
 
-  // Pick first folder once seed lands
   useEffect(() => {
     if (!ready || folderId) return;
     melon
@@ -101,13 +95,19 @@ export function HomeScreen() {
     setReady(true);
   };
 
+  // Narrow: list OR editor (not both stacked — that was overflowing)
+  const showList = wide || !noteId;
+  const showEditor = wide || !!noteId;
+
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
       <View style={styles.header}>
-        <View>
-          <Text style={styles.brand}>Melon Notes</Text>
-          <Text style={styles.sub}>
+        <View style={styles.headerText}>
+          <Text style={styles.brand} numberOfLines={1}>
+            Melon Notes
+          </Text>
+          <Text style={styles.sub} numberOfLines={2}>
             Minimal demo of @alexmitchell/melondb — folders, tags, notes
           </Text>
         </View>
@@ -117,8 +117,21 @@ export function HomeScreen() {
       </View>
 
       <View style={[styles.body, wide && styles.bodyWide]}>
-        <View style={[styles.sidebar, wide && styles.sidebarWide]}>
-          <FolderList selectedFolderId={folderId} onSelect={setFolderId} />
+        <ScrollView
+          style={[
+            styles.sidebar,
+            wide ? styles.sidebarWide : styles.sidebarNarrow,
+          ]}
+          contentContainerStyle={styles.sidebarContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <FolderList
+            selectedFolderId={folderId}
+            onSelect={(id) => {
+              setFolderId(id);
+              if (!wide) setNoteId(null);
+            }}
+          />
           <View style={styles.inlineForm}>
             <TextInput
               value={folderDraft}
@@ -148,35 +161,49 @@ export function HomeScreen() {
               <Text style={styles.smallBtnText}>Add</Text>
             </Pressable>
           </View>
-        </View>
-
-        <ScrollView
-          style={styles.listPane}
-          contentContainerStyle={styles.listContent}
-        >
-          <View style={styles.listHeader}>
-            <Text style={styles.sectionLabel}>Notes</Text>
-            <Pressable onPress={onNewNote} style={styles.primary}>
-              <Text style={styles.primaryText}>New note</Text>
-            </Pressable>
-          </View>
-          <NoteList
-            folderId={folderId}
-            tagId={tagId}
-            selectedNoteId={noteId}
-            onSelect={setNoteId}
-          />
         </ScrollView>
 
-        <View style={[styles.editor, wide && styles.editorWide]}>
-          {noteId ? (
-            <NoteEditor noteId={noteId} onDeleted={() => setNoteId(null)} />
-          ) : (
-            <View style={styles.editorEmpty}>
-              <Text style={styles.editorEmptyText}>Select a note to edit</Text>
+        {showList && (
+          <View style={[styles.pane, styles.listPane]}>
+            <View style={styles.listHeader}>
+              <Text style={styles.sectionLabel}>Notes</Text>
+              <Pressable onPress={onNewNote} style={styles.primary}>
+                <Text style={styles.primaryText}>New note</Text>
+              </Pressable>
             </View>
-          )}
-        </View>
+            <ScrollView
+              style={styles.listScroll}
+              contentContainerStyle={styles.listContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <NoteList
+                folderId={folderId}
+                tagId={tagId}
+                selectedNoteId={noteId}
+                onSelect={setNoteId}
+              />
+            </ScrollView>
+          </View>
+        )}
+
+        {showEditor && (
+          <View style={[styles.pane, styles.editorPane]}>
+            {!wide && noteId ? (
+              <Pressable onPress={() => setNoteId(null)} style={styles.backRow}>
+                <Text style={styles.backText}>← Notes</Text>
+              </Pressable>
+            ) : null}
+            {noteId ? (
+              <NoteEditor noteId={noteId} onDeleted={() => setNoteId(null)} />
+            ) : (
+              <View style={styles.editorEmpty}>
+                <Text style={styles.editorEmptyText}>
+                  Select a note to edit
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -186,6 +213,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.bg,
+    overflow: "hidden",
   },
   boot: {
     flex: 1,
@@ -195,29 +223,34 @@ const styles = StyleSheet.create({
   },
   bootText: { color: colors.muted },
   header: {
-    paddingHorizontal: space.xl,
-    paddingTop: space.xl,
-    paddingBottom: space.lg,
+    flexShrink: 0,
+    paddingHorizontal: space.lg,
+    paddingTop: space.lg,
+    paddingBottom: space.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    gap: space.lg,
+    gap: space.md,
+  },
+  headerText: {
+    flex: 1,
+    minWidth: 0,
   },
   brand: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "700",
     color: colors.ink,
     letterSpacing: -0.5,
   },
   sub: {
     marginTop: 4,
-    fontSize: 14,
+    fontSize: 13,
     color: colors.muted,
-    maxWidth: 420,
   },
   reset: {
+    flexShrink: 0,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
     borderRadius: 8,
@@ -227,49 +260,68 @@ const styles = StyleSheet.create({
   resetText: { color: colors.muted, fontSize: 13 },
   body: {
     flex: 1,
-    padding: space.lg,
-    gap: space.lg,
+    minHeight: 0,
+    minWidth: 0,
+    padding: space.md,
+    gap: space.md,
+    overflow: "hidden",
   },
   bodyWide: {
     flexDirection: "row",
     alignItems: "stretch",
   },
   sidebar: {
-    gap: space.md,
-    padding: space.lg,
+    flexGrow: 0,
+    flexShrink: 0,
     backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.line,
+    overflow: "hidden",
   },
-  sidebarWide: {
-    width: 240,
+  sidebarNarrow: {
+    flexGrow: 0,
     flexShrink: 0,
   },
-  listPane: {
+  sidebarWide: {
+    width: 220,
+    alignSelf: "stretch",
+  },
+  sidebarContent: {
+    padding: space.md,
+    gap: space.md,
+  },
+  pane: {
     flex: 1,
-    minHeight: 220,
+    minWidth: 0,
+    minHeight: 0,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: space.md,
+    overflow: "hidden",
+  },
+  listPane: {
+    gap: space.md,
+  },
+  listScroll: {
+    flex: 1,
+    minHeight: 0,
   },
   listContent: {
-    gap: space.md,
-    paddingBottom: space.xl,
+    gap: space.sm,
+    paddingBottom: space.md,
   },
   listHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    flexShrink: 0,
+    gap: space.sm,
   },
-  editor: {
-    flex: 1,
-    minHeight: 280,
-    padding: space.lg,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  editorWide: {
-    maxWidth: 480,
+  editorPane: {
+    // slightly prefer editor width on wide screens
   },
   editorEmpty: {
     flex: 1,
@@ -277,6 +329,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   editorEmptyText: { color: colors.muted },
+  backRow: {
+    marginBottom: space.sm,
+    alignSelf: "flex-start",
+  },
+  backText: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: "600",
+  },
   sectionLabel: {
     fontSize: 12,
     letterSpacing: 0.6,
@@ -285,28 +346,36 @@ const styles = StyleSheet.create({
   },
   inlineForm: {
     flexDirection: "row",
-    gap: space.sm,
+    gap: space.md,
     alignItems: "center",
+    width: "100%",
+    minWidth: 0,
   },
   input: {
     flex: 1,
+    minWidth: 0,
+    height: 36,
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: 8,
-    paddingHorizontal: space.md,
-    paddingVertical: 8,
+    paddingHorizontal: space.sm,
+    paddingVertical: 0,
     fontSize: 14,
     color: colors.ink,
     backgroundColor: colors.bg,
   },
   smallBtn: {
+    flexShrink: 0,
+    height: 36,
     paddingHorizontal: space.md,
-    paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: colors.chip,
+    alignItems: "center",
+    justifyContent: "center",
   },
   smallBtnText: { fontSize: 13, fontWeight: "600", color: colors.ink },
   primary: {
+    flexShrink: 0,
     backgroundColor: colors.accent,
     paddingHorizontal: space.md,
     paddingVertical: 8,
