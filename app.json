@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Melon Notes",
+    "slug": "melon-notes",
+    "scheme": "melon-notes",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
